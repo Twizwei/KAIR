@@ -3,7 +3,7 @@ import torch.nn as nn
 import torchvision
 from torch.nn import functional as F
 from torch import autograd as autograd
-
+import lpips
 
 """
 Sequential(
@@ -128,6 +128,21 @@ class PerceptualLoss(nn.Module):
         else:
             loss += self.lossfn(x_vgg, gt_vgg.detach())
         return loss
+
+class LPIPSLoss(nn.Module):
+    def __init__(self, net='vgg'):
+        super(LPIPSLoss, self).__init__()
+        self.lpips = lpips.LPIPS(net='vgg')
+
+    def forward(self, x, gt):
+        """Forward function.
+        Args:
+            x (Tensor): Input tensor with shape (n, c, h, w).
+            gt (Tensor): Ground-truth tensor with shape (n, c, h, w).
+        Returns:
+            Tensor: Forward results.
+        """
+        return self.lpips(x, gt)
 
 # --------------------------------------------
 # GAN loss: gan, ragan

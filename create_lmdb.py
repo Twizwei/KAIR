@@ -71,18 +71,24 @@ def create_lmdb_for_reds():
         Remember to modify opt configurations according to your settings.
     """
     # train_sharp
-    folder_path = 'trainsets/REDS/train_sharp'
-    lmdb_path = 'trainsets/REDS/train_sharp_with_val.lmdb'
-    print('Creating lmdb for REDS dataset ...')
-    img_path_list, keys = prepare_keys_reds(folder_path)
-    make_lmdb_from_imgs(folder_path, lmdb_path, img_path_list, keys, multiprocessing_read=True)
+    try:
+        folder_path = 'trainsets/REDS/train_sharp'
+        lmdb_path = 'trainsets/REDS/train_sharp_with_val.lmdb'
+        print('Creating lmdb for REDS dataset ...')
+        img_path_list, keys = prepare_keys_reds(folder_path)
+        make_lmdb_from_imgs(folder_path, lmdb_path, img_path_list, keys, multiprocessing_read=True)
+    except:
+        print('Error in train_sharp')
 
     # train_sharp_bicubic
-    folder_path = 'trainsets/REDS/train_sharp_bicubic'
-    lmdb_path = 'trainsets/REDS/train_sharp_bicubic_with_val.lmdb'
-    print('Creating lmdb for REDS bicubic dataset ...')
-    img_path_list, keys = prepare_keys_reds(folder_path)
-    make_lmdb_from_imgs(folder_path, lmdb_path, img_path_list, keys, multiprocessing_read=True)
+    try:
+        folder_path = 'trainsets/REDS/train_sharp_bicubic'
+        lmdb_path = 'trainsets/REDS/train_sharp_bicubic_with_val.lmdb'
+        print('Creating lmdb for REDS bicubic dataset ...')
+        img_path_list, keys = prepare_keys_reds(folder_path)
+        make_lmdb_from_imgs(folder_path, lmdb_path, img_path_list, keys, multiprocessing_read=True)
+    except:
+        print('Error in train_sharp_bicubic')
 
     # # train_blur (for video deblurring)
     # folder_path = 'trainsets/REDS_blur/train_blur'

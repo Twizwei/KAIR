@@ -1,0 +1,10 @@
+.DS_Store
+.ipynb_checkpoints
+cache*
+*.pkl
+__pycache__/
+
+sbatch_job_logs/*
+run_create_lmdb.sh
+trainsets/REDS
+
