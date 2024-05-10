@@ -1,4 +1,5 @@
 import numpy as np
+from PIL import Image
 import random
 import torch
 from pathlib import Path
@@ -144,22 +145,34 @@ class VideoRecurrentTrainDataset(data.Dataset):
         img_lqs = []
         img_gts = []
         for neighbor in neighbor_list:
-            if self.is_lmdb:
+            if self.is_lmdb:                    
                 img_lq_path = f'{clip_name}/{neighbor:{self.filename_tmpl}}'
                 img_gt_path = f'{clip_name}/{neighbor:{self.filename_tmpl}}'
+                if self.opt['val_partition'] == 'REDS4' or 'REDS' in self.opt['dataroot_gt']:
+                    img_lq_path = 'X4/' + img_lq_path
             else:
                 img_lq_path = self.lq_root / clip_name / f'{neighbor:{self.filename_tmpl}}.{self.filename_ext}'
                 img_gt_path = self.gt_root / clip_name / f'{neighbor:{self.filename_tmpl}}.{self.filename_ext}'
-
-            # get LQ
-            img_bytes = self.file_client.get(img_lq_path, 'lq')
-            img_lq = utils_video.imfrombytes(img_bytes, float32=True)
-            img_lqs.append(img_lq)
-
-            # get GT
-            img_bytes = self.file_client.get(img_gt_path, 'gt')
-            img_gt = utils_video.imfrombytes(img_bytes, float32=True)
-            img_gts.append(img_gt)
+            
+            if self.opt['val_partition'] == 'REDS4' and self.scale == 4:
+                # get GT
+                img_bytes = self.file_client.get(img_gt_path, 'gt')
+                img_gt = utils_video.imfrombytes(img_bytes, float32=True)
+                img_gts.append(img_gt)
+                # get LQ
+                img_bytes = self.file_client.get(img_lq_path, 'lq')
+                img_lq = utils_video.imfrombytes(img_bytes, float32=True)
+                img_lqs.append(img_lq)
+            elif self.opt['val_partition'] == 'REDS4' and self.scale == 8:
+                # manually downsample bicubic x8
+                # get GT
+                img_bytes = self.file_client.get(img_gt_path, 'gt')
+                img_gt = utils_video.imfrombytes(img_bytes, float32=False)
+                # get LQ
+                img_lq = Image.fromarray(img_gt).resize((img_gt.shape[1] // 8, img_gt.shape[0] // 8), Image.BICUBIC)
+                img_lq = np.array(img_lq).astype(np.float32) / 255.
+                img_lqs.append(img_lq)
+                img_gts.append(np.array(img_gt).astype(np.float32) / 255.)
 
         # randomly crop
         img_gts, img_lqs = utils_video.paired_random_crop(img_gts, img_lqs, self.gt_size, self.scale, img_gt_path)

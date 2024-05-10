@@ -132,7 +132,7 @@ class PerceptualLoss(nn.Module):
 class LPIPSLoss(nn.Module):
     def __init__(self, net='vgg'):
         super(LPIPSLoss, self).__init__()
-        self.lpips = lpips.LPIPS(net='vgg')
+        self.lpips = lpips.LPIPS(net=net)
 
     def forward(self, x, gt):
         """Forward function.
@@ -143,6 +143,30 @@ class LPIPSLoss(nn.Module):
             Tensor: Forward results.
         """
         return self.lpips(x, gt)
+
+class CharLPIPSLoss(nn.Module):
+    """
+    Charbonnier Loss + LPIPS Loss
+    """
+    def __init__(self, net='vgg', eps=1e-9, char_weight=1.0, lpips_weight=0.5):
+        super(CharLPIPSLoss, self).__init__()
+        self.char_loss = CharbonnierLoss(eps)
+        self.lpips_loss = lpips.LPIPS(net=net)
+        self.char_weight = char_weight
+        self.lpips_weight = lpips_weight
+
+    def forward(self, x, gt):
+        char_loss = self.char_loss(x, gt)
+        if x.dim() == 5 and gt.dim() == 5:
+            x = x.reshape(-1, x.size(-3), x.size(-2), x.size(-1))
+            gt = gt.reshape(-1, gt.size(-3), gt.size(-2), gt.size(-1))
+        # renormalize x, gt from [0, 1] to [-1, 1]
+        if x.min() >= 0 and x.max() <= 1 and gt.min() >= 0 and gt.max() <= 1:
+            x = 2.0 * x - 1.0
+            gt = 2.0 * gt - 1.0
+        lpips_loss = self.lpips_loss(x, gt).mean()
+        return self.char_weight * char_loss + self.lpips_weight * lpips_loss
+
 
 # --------------------------------------------
 # GAN loss: gan, ragan

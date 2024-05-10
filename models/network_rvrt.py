@@ -809,7 +809,7 @@ class RVRT(nn.Module):
         self.spynet = SpyNet(spynet_path)
 
         # shallow feature extraction
-        if self.upscale == 4:
+        if self.upscale == 4 or self.upscale == 8:
             # video sr
             self.feat_extract = RSTBWithInputConv(in_channels=3,
                                                   kernel_size=(1, 3, 3),
@@ -911,7 +911,7 @@ class RVRT(nn.Module):
                                                             padding=(0, 0, 0)),
                                                   nn.LeakyReLU(negative_slope=0.1, inplace=True)
                                                   )
-        self.upsampler = Upsample(4, 64)
+        self.upsampler = Upsample(self.upscale, 64)
         self.conv_last = nn.Conv3d(64, 3, kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
     def compute_flow(self, lqs):
@@ -1128,7 +1128,7 @@ class RVRT(nn.Module):
         # whether to cache the features in CPU
         self.cpu_cache = True if t > self.cpu_cache_length else False
 
-        if self.upscale == 4:
+        if self.upscale == 4 or self.upscale == 8:
             lqs_downsample = lqs.clone()
         else:
             lqs_downsample = F.interpolate(lqs[:, :, :3, :, :].view(-1, 3, h, w), scale_factor=0.25, mode='bicubic')\

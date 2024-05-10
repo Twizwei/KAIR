@@ -7,4 +7,5 @@ __pycache__/
 sbatch_job_logs/*
 run_create_lmdb.sh
 trainsets/REDS
+experiments/*
 
